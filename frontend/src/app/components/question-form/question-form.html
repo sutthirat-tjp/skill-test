@@ -1,0 +1,29 @@
+<div class="container mt-4" style="max-width: 700px;">
+        
+    <div class="mb-4">
+        <div class="input-group mb-3">
+        <span class="input-group-text bg-light px-3 fw-bold">คำถาม</span>
+        <input type="text" class="form-control" name="title" 
+            [(ngModel)]="question.title" placeholder="ระบุโจทย์คำถามที่นี่">
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div *ngFor="let choice of question.choices; let i = index" class="input-group mb-3">
+        <span class="input-group-text bg-light px-3">ตัวเลือก {{ i + 1 }}</span>
+        <input type="text" class="form-control" [name]="'choiceText' + i" 
+                [(ngModel)]="choice.answerText" placeholder="ระบุคำตอบข้อที่ {{ i + 1 }}">
+        </div>
+    </div>
+
+    <div class="d-grid gap-3 d-md-flex justify-content-md-center mt-5">
+        <button type="button" class="btn btn-success btn-lg px-5 shadow-sm" (click)="onSubmit()">
+        <i class="bi bi-save me-2"></i>บันทึก
+        </button>
+        <button type="button" class="btn btn-danger btn-lg px-5 shadow-sm" (click)="back()">
+        <i class="bi bi-x-circle me-2"></i>ยกเลิก
+        </button>
+    </div>
+  
+  
+  </div>
