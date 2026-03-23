@@ -38,6 +38,14 @@ public class QuestionService : IQuestionService {
         var response = new ServiceResponse<Question>();
         try {
             if (question.Id == 0) {
+                // ดึงค่า RunningNo ที่มากที่สุดในปัจจุบัน ถ้ายังไม่มีข้อมูลเลย 0 + 1 
+                // เดิมตั้งใจใช้แสดงหน้าบ้าน แต่คิดว่าการ reorder ทุกครั้งที่มีการลบ ไม่เหมาะสม ใช้ index ก็เพียงพอ เลยเก็บ RunningNo ไว้ใช้เป็น code
+                int maxRunningNo = await _context.Questions
+                    .Select(q => (int?)q.RunningNo)
+                    .MaxAsync() ?? 0;
+
+                question.RunningNo = maxRunningNo + 1;
+
                 await _context.Questions.AddAsync(question);
             } else {
                 var existing = await _context.Questions.AsNoTracking().FirstOrDefaultAsync(q => q.Id == question.Id);
@@ -45,16 +53,24 @@ public class QuestionService : IQuestionService {
                     response.Message = "ไม่พบข้อมูลที่ต้องการแก้ไข";
                     return response;
                 }
-                // ลบ Choice เก่าแล้วลงใหม่ (Easy way)
-                _context.Choices.RemoveRange(_context.Choices.Where(c => c.QuestionId == question.Id));
+
+                question.RunningNo = existing.RunningNo;
+
+                var oldChoices = _context.Choices.Where(c => c.QuestionId == question.Id);
+                _context.Choices.RemoveRange(oldChoices);
+                
                 _context.Entry(question).State = EntityState.Modified;
                 await _context.Choices.AddRangeAsync(question.Choices);
             }
+
             await _context.SaveChangesAsync();
             response.Result = question;
             response.Success = true;
             response.Message = "บันทึกข้อมูลเรียบร้อย";
-        } catch (Exception ex) { response.Message = ex.Message; }
+        } catch (Exception ex) { 
+            response.Message = ex.InnerException?.Message ?? ex.Message; 
+            response.Success = false;
+        }
         return response;
     }
 
